@@ -10,6 +10,8 @@
 **Witcher Online** is a mod that adds multiplayer to *The Witcher 3: Wild Hunt*, turning your single player experience into an MMO experience. Join servers to play with your friends, customize your character using [Custom Player Characters](https://www.nexusmods.com/witcher3/mods/5940) and relax in taverns using [Chill Out](https://www.nexusmods.com/witcher3/mods/6402). Play Gwent and join parties with other players. Chat with strangers and perform emotes to roleplay with other players. Complete quests alongside friends.
 
 ## Getting started
+For a source-code overview and extension entry points, see the [developer guide](docs/DEVELOPMENT.md).
+
 To play Witcher Online, go to the [nexus page](https://www.nexusmods.com/witcher3/mods/11590).
 
 For general information, go to the [Witcher Online Wiki](https://rejuvenate.gitbook.io/witcheronline).
