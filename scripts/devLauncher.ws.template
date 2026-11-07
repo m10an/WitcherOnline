@@ -1,0 +1,53 @@
+@addField(CR4Game)
+var wo_devSaveAttempted : bool;
+
+@addMethod(CR4Game)
+public function WO_MarkDevelopmentSaveAttempted()
+{
+    this.wo_devSaveAttempted = true;
+}
+
+@addMethod(CR4IngameMenu)
+private function WO_TryLoadDevelopmentSave()
+{
+    var saves : array<SSavegameInfo>;
+    var i : int;
+    var filename : string;
+
+    if (!isMainMenu || ignoreInput || theGame.wo_devSaveAttempted)
+    {
+        return;
+    }
+
+    theGame.ListSavedGames(saves);
+    for (i = 0; i < saves.Size(); i += 1)
+    {
+        filename = StrLower(saves[i].filename);
+        if (filename == StrLower("__SAVE_FILENAME__") || filename == StrLower("__SAVE_STEM__"))
+        {
+            theGame.WO_MarkDevelopmentSaveAttempted();
+            // Keep the existing compatibility popup and its normal retry path.
+            if (!CheckModdedSave(saves[i], true))
+            {
+                m_lastAttemptedSaveId = i;
+                return;
+            }
+            LoadSaveRequested(saves[i]);
+            return;
+        }
+    }
+}
+
+@wrapMethod(CR4IngameMenu)
+function OnConfigUI()
+{
+    wrappedMethod();
+    WO_TryLoadDevelopmentSave();
+}
+
+@wrapMethod(CR4IngameMenu)
+function OnRefresh()
+{
+    wrappedMethod();
+    WO_TryLoadDevelopmentSave();
+}
