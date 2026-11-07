@@ -21,6 +21,7 @@ namespace wo_native
 	static std::ofstream g_logFile;
 	static std::atomic<bool> g_registrationAttempted{false};
 	static std::atomic<bool> g_registrationSucceeded{false};
+	static std::atomic<uint32_t> g_bridgeApiVersion{0};
 
 	void InitLog(const std::string &path)
 	{
@@ -110,6 +111,10 @@ namespace wo_native
 			return out;
 
 		const uint32_t length = LogicalLength(text);
+		// API 2 exposes UTF-8 bytes through the same pointer field used by API 1.
+		if (g_bridgeApiVersion.load() >= 2)
+			return std::string(reinterpret_cast<const char*>(text.data), length);
+
 		out.reserve(length);
 
 		for (uint32_t i = 0; i < length; ++i)
@@ -444,6 +449,7 @@ namespace wo_native
 			DebugLog("WitcherNativeBridge API is too old: found " + std::to_string(apiVersion) + ", need " + std::to_string(WNB_API_VERSION));
 			return false;
 		}
+		g_bridgeApiVersion.store(apiVersion);
 
 		struct NativeRegistration
 		{
