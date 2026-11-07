@@ -21,7 +21,6 @@ namespace wo_native
 	static std::ofstream g_logFile;
 	static std::atomic<bool> g_registrationAttempted{false};
 	static std::atomic<bool> g_registrationSucceeded{false};
-	static std::atomic<uint32_t> g_bridgeApiVersion{0};
 
 	void InitLog(const std::string &path)
 	{
@@ -99,30 +98,13 @@ namespace wo_native
 		return -1;
 	}
 
-	static uint32_t LogicalLength(const WNB_String &text)
-	{
-		return (text.data && text.size > 0) ? text.size - 1 : 0;
-	}
-
 	static std::string NarrowPayload(const WNB_String &text)
 	{
-		std::string out;
-		if (!text.data)
-			return out;
+		if (!text.data || text.size == 0)
+			return {};
 
-		const uint32_t length = LogicalLength(text);
-		// API 2 exposes UTF-8 bytes through the same pointer field used by API 1.
-		if (g_bridgeApiVersion.load() >= 2)
-			return std::string(reinterpret_cast<const char*>(text.data), length);
-
-		out.reserve(length);
-
-		for (uint32_t i = 0; i < length; ++i)
-		{
-			const wchar_t c = text.data[i];
-			out += (c < 256) ? static_cast<char>(c) : '?';
-		}
-		return out;
+		// API 2 stores UTF-8 bytes in this ABI field, including a trailing NUL.
+		return std::string(reinterpret_cast<const char*>(text.data), text.size - 1);
 	}
 
 	static bool ReturnString(void *frame, void *result, const std::string &text)
@@ -444,12 +426,11 @@ namespace wo_native
 			return g_registrationSucceeded.load();
 
 		const uint32_t apiVersion = WNB_GetApiVersion();
-		if (apiVersion < WNB_API_VERSION)
+		if (apiVersion != WNB_API_VERSION)
 		{
-			DebugLog("WitcherNativeBridge API is too old: found " + std::to_string(apiVersion) + ", need " + std::to_string(WNB_API_VERSION));
+			DebugLog("Unsupported WitcherNativeBridge API: found " + std::to_string(apiVersion) + ", need " + std::to_string(WNB_API_VERSION));
 			return false;
 		}
-		g_bridgeApiVersion.store(apiVersion);
 
 		struct NativeRegistration
 		{

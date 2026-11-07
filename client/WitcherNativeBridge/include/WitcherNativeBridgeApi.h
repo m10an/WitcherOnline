@@ -18,7 +18,7 @@ struct WNB_String
 	uint32_t padding;
 };
 
-inline constexpr uint32_t WNB_API_VERSION = 1;
+inline constexpr uint32_t WNB_API_VERSION = 2;
 
 extern "C"
 {
