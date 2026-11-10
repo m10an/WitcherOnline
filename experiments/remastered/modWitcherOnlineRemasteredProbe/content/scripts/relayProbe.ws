@@ -2,16 +2,11 @@ import function WO_Send(payload : string) : bool;
 import function WO_Poll() : int;
 import function WO_Str(index : int) : string;
 
-exec function wo_remastered_probe()
+function WO_RemasteredMovementPayload() : string
 {
     var position : Vector;
     var area : name;
     var payload : string;
-
-    if (!thePlayer)
-    {
-        return;
-    }
 
     position = thePlayer.GetWorldPosition();
     area = theGame.GetCommonMapManager().GetCurrentArea();
@@ -27,10 +22,26 @@ exec function wo_remastered_probe()
     payload += position.W;
     payload += " ";
     payload += thePlayer.GetHeading();
-    payload += " 0 ";
+    payload += " ";
+    payload += thePlayer.GetMovingAgentComponent().GetRelativeMoveSpeed();
+    payload += " ";
     payload += area;
+    return payload;
+}
 
-    if (WO_Send(payload))
+exec function wo_remastered_probe()
+{
+    if (!thePlayer)
+    {
+        return;
+    }
+    if (theGame.WO_GetRemasteredClient().IsRunning())
+    {
+        theGame.WO_GetRemasteredClient().ShowStatus();
+        return;
+    }
+
+    if (WO_Send(WO_RemasteredMovementPayload()))
     {
         thePlayer.DisplayHudMessage("Probe queued. Run wo_remastered_status() to check the relay.");
     }
@@ -50,6 +61,11 @@ exec function wo_remastered_status()
 
     if (!thePlayer)
     {
+        return;
+    }
+    if (theGame.WO_GetRemasteredClient().IsRunning())
+    {
+        theGame.WO_GetRemasteredClient().ShowStatus();
         return;
     }
 
